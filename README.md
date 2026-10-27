@@ -9,7 +9,8 @@ It gives CI a predictable exit code and reviewers a self-contained HTML report,
 machine-readable JSON, and JUnit results. Python 3.11+. Zero runtime dependencies.
 
 [Explore the live demo](https://antjun.github.io/trace-budget/) |
-[Read the design](docs/design.md)
+[Read the design](docs/design.md) |
+[Validation results](docs/validation.md)
 
 ## The problem it solves
 
