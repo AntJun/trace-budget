@@ -9,6 +9,18 @@ destination = Path(sys.argv[2])
 destination.mkdir(parents=True, exist_ok=True)
 shutil.copytree(source, destination / "synthetic", dirs_exist_ok=True)
 shutil.copytree(source / "measured", destination / "measured", dirs_exist_ok=True)
+producer = Path(sys.argv[3]) if len(sys.argv) > 3 else None
+producer_card = ""
+if producer is not None:
+    if not (producer / "method.json").is_file():
+        raise SystemExit("PyTorch producer artifacts are incomplete.")
+    shutil.copytree(producer, destination / "pytorch", dirs_exist_ok=True)
+    producer_card = """<article><span class="tag">REAL PROFILER EXPORT</span>
+<h2>PyTorch CPU inference, captured and checked</h2>
+<p>The official CPU profiler records a small model with two equivalent inference implementations.
+Only the fixed stage annotation is published; raw exports are excluded.</p>
+<a href="pytorch/index.html">Explore the PyTorch report</a><br>
+<a href="pytorch/method.json">Inspect the producer validation</a></article>"""
 # Keep the synthetic example independent from the measured workload directory.
 shutil.rmtree(destination / "synthetic" / "measured")
 (destination / "index.html").write_text("""<!doctype html>
@@ -35,7 +47,7 @@ These values are illustrative test data.</p>
 <article><span class="tag">MEASURED WORKLOAD</span><h2>An algorithm change introduces a slowdown</h2>
 <p>A GitHub-hosted runner compares set and linear-list membership using the same query batch.
 The slowdown is deliberate; timings vary with each build.</p>
-<a href="measured/index.html">Explore the measured report</a><br><a href="measured/method.json">Read the measurement method</a></article></div>
+<a href="measured/index.html">Explore the measured report</a><br><a href="measured/method.json">Read the measurement method</a></article>__PRODUCER_CARD__</div>
 <section><h2>One command, reviewable artifacts</h2><pre><code>python -m tracebudget baseline.json candidate.json \\
   --policy policy.json --warmup 5 \\
   --html report.html --json report.json --junit junit.xml</code></pre>
@@ -47,4 +59,4 @@ timestamps, and source paths are excluded. Selected span names and categories re
 <p><a href="https://github.com/AntJun/trace-budget#readme">Read the usage and analysis limits</a></p></section>
 <footer>Maintained by AntJun. MIT licensed. Generated and tested on GitHub-hosted runners.</footer>
 </main></body></html>
-""", encoding="utf-8")
+""".replace("__PRODUCER_CARD__", producer_card), encoding="utf-8")

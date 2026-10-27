@@ -88,5 +88,7 @@ no commercial impact, cross-application speedup, or statistical significance.
 
 A game or application team could export representative frame/startup traces,
 choose budgets from user-facing targets, and evaluate the gate across repeated
-controlled changes. A genuine PyTorch export would extend producer compatibility evidence.
+controlled changes. The optional PyTorch job validates a real CPU producer export, named annotations,
+output equivalence, and matching raw/projected aggregate results for its pinned version.
+GPU, training, and other producer versions need separate compatibility evidence.
 Lane selectors and native Perfetto import can follow an observed user need.

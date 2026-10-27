@@ -26,6 +26,7 @@ a deliberate algorithm change.
 
 ## Scope for the next increment
 
-Collect a real producer export, document the instrumentation and a reviewed change,
-and investigate false alarms across multiple runs. Expand input support in response
+The PyTorch increment adds a real producer export with explicit safe labels,
+validated output equivalence, and a public projection checked against raw timing statistics.
+Next, investigate false alarms across multiple runs and add a real game-engine capture. Expand input support in response
 to demonstrated compatibility needs.

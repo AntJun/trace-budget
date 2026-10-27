@@ -19,8 +19,8 @@ past its latency budget?
 
 TraceBudget turns selected stage names into reviewable checks. Typical uses include
 game-frame processing, application startup stages, batch processing, and instrumented
-inference stages exported as Chrome JSON. PyTorch can export this format; compatibility
-with a particular producer should be checked against the supported subset below.
+inference stages exported as Chrome JSON. The optional PyTorch integration checks a real CPU profiler export for a pinned
+producer version, using the supported subset below.
 
 Perfetto supplies comprehensive trace analysis and SQL metrics. TraceBudget focuses
 on a small install footprint, explicit budget policies, and artifacts that fit a CI review.
@@ -51,6 +51,34 @@ Its timing values depend on the runner and workload.
 The [live demo](https://antjun.github.io/trace-budget/) includes both examples and their JSON evidence.
 GitHub Actions generates, tests, audits, and publishes the reports without deployment credentials
 stored in the repository.
+
+## Real PyTorch producer example
+
+The [PyTorch CPU report](https://antjun.github.io/trace-budget/pytorch/index.html)
+comes from an actual torch.profiler export on a GitHub-hosted Ubuntu 24.04 runner.
+The integration uses the official torch==2.14.1+cpu wheel and Python 3.11.
+
+A fixed two-layer model compares one vectorized batch with 64 per-row calls.
+Both implementations produce matching outputs within an explicit numerical tolerance.
+Each variant records 30 named inference spans; three warmup samples are removed
+before evaluating the remaining 27.
+
+The full raw export is parsed and checked before a public projection is created.
+Only the fixed inference label, duration, relative timestamp, and normalized lane IDs
+are retained. Raw exports are deleted from temporary storage and never uploaded.
+The integration also checks CPU operator presence, exact annotation counts,
+self-comparison, and matching raw/projected statistics and budget decisions.
+
+~~~sh
+python -m pip install -r examples/pytorch-requirements.txt
+python -m tools.profile_pytorch --output artifacts/pytorch
+~~~
+
+PyTorch is an optional integration-test dependency. The TraceBudget CLI retains
+zero runtime dependencies. The compatibility job accepts either complete budget
+outcome; passing depends on format interoperability and output equivalence.
+Timing values include profiler overhead and reflect one sequential CPU capture
+per implementation. They establish no GPU, training, production, or general model-performance result.
 
 ## Define a policy
 
