@@ -46,7 +46,7 @@ def render_html(report: dict, title: str = "Performance budget report") -> str:
         f'{inputs["candidate"]["spans"]} duration spans. '
         f'{ignored} unsupported-phase events ignored.'
     )
-    return """<!doctype html>
+    return ("""<!doctype html>
 <html lang="en-US"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
@@ -88,7 +88,7 @@ Raw event arguments, process metadata, thread IDs, timestamps, and file paths ar
 <footer>Maintained by <a href="https://github.com/AntJun">AntJun</a> &middot;
 <a href="https://github.com/AntJun/trace-budget">Source and usage</a> &middot;
 Exit codes: 0 pass, 1 regression, 2 invalid or incomplete input.</footer></main></body></html>
-"""
+""")
 
 
 def render_junit(report: dict) -> str:
