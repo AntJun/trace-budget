@@ -136,7 +136,7 @@ baseline selection, and artifact retention.
 - Finite, nonnegative timestamps/durations up to 1e18 microseconds.
   Integer timestamps retain integer subtraction, including values beyond 2^53.
 - A default 64 MiB input limit, one million events per capture, one MiB policy limit,
-  and 1,000 policy rules. --max-mb and --max-events configure capture limits.
+  and 1,000 policy rules. --max-mb (1 to 256) and --max-events configure capture limits.
 
 Malformed supported events invalidate the capture, including events outside configured groups.
 Unknown phases are ignored and counted in reports. Async events, flows, counters, native

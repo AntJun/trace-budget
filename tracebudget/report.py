@@ -96,7 +96,7 @@ def render_junit(report: dict) -> str:
     suite = ET.Element("testsuite", name="TraceBudget", tests=str(summary["rules"]),
                        failures=str(summary["regressions"]), errors=str(summary["incomplete"]))
     for row in report["results"]:
-        case = ET.SubElement(suite, "testcase", classname=row["category"] or "uncategorized",
+        case = ET.SubElement(suite, "testcase", classname=row["category"],
                              name=row["name"] + " [" + row["metric"] + "]")
         message = "; ".join(row["reasons"])
         if row["status"] != "pass":

@@ -30,6 +30,19 @@ def _positive(text: str) -> int:
     return value
 
 
+def _megabytes(text: str) -> int:
+    value = _positive(text)
+    if value > 256:
+        raise argparse.ArgumentTypeError("max-mb must be between 1 and 256")
+    return value
+
+
+def aliases(first: Path, second: Path) -> bool:
+    if first.resolve() == second.resolve():
+        return True
+    return first.exists() and second.exists() and first.samefile(second)
+
+
 def write_atomic(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
@@ -52,17 +65,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--policy", required=True, type=Path)
     parser.add_argument("--warmup", type=_nonnegative, default=0,
                         help="earliest spans discarded per category/name group in each capture")
-    parser.add_argument("--max-mb", type=_positive, default=64)
+    parser.add_argument("--max-mb", type=_megabytes, default=64)
     parser.add_argument("--max-events", type=_positive, default=1_000_000)
     parser.add_argument("--json", type=Path, dest="json_path")
     parser.add_argument("--html", type=Path, dest="html_path")
     parser.add_argument("--junit", type=Path, dest="junit_path")
     args = parser.parse_args(argv)
     try:
-        inputs = {path.resolve() for path in (args.baseline, args.candidate, args.policy)}
+        inputs = (args.baseline, args.candidate, args.policy)
         outputs = [path for path in (args.json_path, args.html_path, args.junit_path) if path]
-        resolved = [path.resolve() for path in outputs]
-        if len(set(resolved)) != len(resolved) or any(path in inputs for path in resolved):
+        duplicate = any(aliases(path, previous) for i, path in enumerate(outputs)
+                        for previous in outputs[:i])
+        if duplicate or any(aliases(path, source) for path in outputs for source in inputs):
             raise InputError("output paths must be distinct and cannot overwrite inputs")
         policy = parse_policy(read_json(args.policy, min(args.max_mb * 1024 * 1024, 1024 * 1024)))
         captures = []

@@ -6,6 +6,7 @@ import json
 import math
 from collections import defaultdict
 from dataclasses import dataclass
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
@@ -55,8 +56,8 @@ def _constant(_: str) -> None:
 
 
 def read_json(path: Path, max_bytes: int = 64 * 1024 * 1024) -> Any:
-    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
-        raise InputError("max_bytes must be a positive integer")
+    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1 or max_bytes > 256 * 1024 * 1024:
+        raise InputError("max_bytes must be between 1 byte and 256 MiB")
     try:
         with path.open("rb") as source:
             raw = source.read(max_bytes + 1)
@@ -129,7 +130,7 @@ def parse_trace(data: Any, max_events: int = 1_000_000) -> Capture:
                 raise InputError(f"event {index} closes a different span")
             if "cat" in event and category(event["cat"]) != cat:
                 raise InputError(f"event {index} closes a different category")
-            spans.append(Span(name, cat, start, (timestamp - start) / 1000, source_index))
+            spans.append(Span(name, cat, start, float((Fraction(timestamp) - Fraction(start)) / 1000), source_index))
             continue
         name = label(event.get("name"), f"event {index} name")
         cat = category(event.get("cat", ""))

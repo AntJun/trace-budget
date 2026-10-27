@@ -61,6 +61,13 @@ class TraceTests(unittest.TestCase):
         ]
         self.assertEqual(parse_trace(data).spans[0].duration_ms, 0.001)
 
+    def test_mixed_integer_float_timestamp_precision(self):
+        data = [
+            {"ph": "B", "name": "x", "ts": 999999999999999999, "pid": 1, "tid": 1},
+            {"ph": "E", "ts": 1e18, "pid": 1, "tid": 1},
+        ]
+        self.assertEqual(parse_trace(data).spans[0].duration_ms, 0.001)
+
     def test_equal_time_begin_then_end_is_zero(self):
         data = [{"ph": "B", "name": "x", "ts": 0, "pid": 1, "tid": 1},
                 {"ph": "E", "ts": 0, "pid": 1, "tid": 1}]
@@ -240,6 +247,8 @@ class BudgetTests(unittest.TestCase):
             self.assertEqual(read_json(path, 2), [])
             with self.assertRaises(InputError):
                 read_json(path, 1)
+            with self.assertRaises(InputError):
+                read_json(path, 10 ** 100)
             for raw in (b'{"x":1,"x":2}', b'{"x":NaN}', b"\xff", b"["):
                 path.write_bytes(raw)
                 with self.assertRaises(InputError):

@@ -43,7 +43,8 @@ Keeping these responsibilities separate makes report changes independent of gate
 Supported slices are sorted by start timestamp and original source index.
 B/E pairing uses per-lane stacks; supplied end labels must match. Begin source
 indexes survive pairing so equal-start warmup order follows the original input.
-Integer time values preserve subtraction precision. Threshold checks compare the
+Integer time values preserve subtraction precision. Mixed integer/float timestamp
+subtraction uses exact rational arithmetic before converting the duration to milliseconds. Threshold checks compare the
 candidate statistic directly with its effective bound and use a four-ULP equality
 guard. This prevents decimal representation noise from flagging an exact boundary.
 
@@ -64,7 +65,8 @@ All unknown phases count toward the capture limit and appear as ignored counts.
 Reports never copy raw args or metadata. Configured names/categories remain visible;
 the tool has no universal sensitive-label classifier. HTML contains no active scripts
 or external assets. JUnit input restrictions cover XML-invalid controls and surrogates.
-The CLI escapes terminal labels and refuses output/input aliases.
+The CLI escapes terminal labels and refuses output/input aliases, including existing
+hard links and filesystem case aliases checked through samefile().
 
 ## Evaluation
 

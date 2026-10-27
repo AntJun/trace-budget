@@ -1,6 +1,7 @@
 import contextlib
 import io
 import json
+import os
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
@@ -60,6 +61,22 @@ class CliTests(unittest.TestCase):
         self.assertEqual(self.run_cli(["--json", self.args[0]])[0], 2)
         self.assertEqual((self.folder / "old.json").read_bytes(), original)
 
+    def test_existing_hardlink_input_alias_rejected(self):
+        alias = self.folder / "input-alias.json"
+        os.link(self.folder / "old.json", alias)
+        self.assertEqual(self.run_cli(["--json", str(alias)])[0], 2)
+
+    def test_existing_hardlink_output_aliases_rejected(self):
+        first, second = self.folder / "first", self.folder / "second"
+        first.write_text("", encoding="utf-8")
+        os.link(first, second)
+        self.assertEqual(self.run_cli(["--json", str(first), "--html", str(second)])[0], 2)
+
+    def test_oversized_cli_limit_returns_two(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as result:
+            main(self.args + ["--max-mb", "999999999999999999999999"])
+        self.assertEqual(result.exception.code, 2)
+
     def test_outputs_must_be_distinct(self):
         target = str(self.folder / "report")
         self.assertEqual(self.run_cli(["--json", target, "--html", target])[0], 2)
@@ -111,6 +128,17 @@ class ReportTests(unittest.TestCase):
         for text in (html, render_junit(report), json.dumps(report)):
             self.assertNotIn(private, text)
         self.assertEqual(ET.fromstring(render_junit(report))[0].attrib["name"], name + " [p95]")
+
+    def test_empty_category_and_literal_uncategorized_stay_distinct(self):
+        events = [{"ph": "X", "name": "stage", "cat": cat, "ts": 0, "dur": 1}
+                  for cat in ("", "uncategorized")]
+        capture = parse_trace(events)
+        policy = parse_policy({"version": 1, "min_samples": 1, "rules": [
+            {"name": "stage", "category": "", "max_ms": 1},
+            {"name": "stage", "category": "uncategorized", "max_ms": 1}]})
+        suite = ET.fromstring(render_junit(compare(capture, capture, policy)))
+        identities = {(case.attrib["classname"], case.attrib["name"]) for case in suite}
+        self.assertEqual(len(identities), 2)
 
     def test_junit_errors_and_failures_are_distinct(self):
         old, new = synthetic()
