@@ -136,6 +136,23 @@ class BudgetTests(unittest.TestCase):
                          policy(max_ms=110, max_regression_pct=10, min_delta_ms=10))
         self.assertEqual(result["exit_code"], 0)
 
+    def test_decimal_percentage_and_delta_equalities(self):
+        old, new = capture([0.3]), capture([0.33])
+        self.assertEqual(compare(old, new, policy(max_regression_pct=10))["exit_code"], 0)
+        self.assertEqual(compare(old, new, policy(max_regression_pct=0, min_delta_ms=0.03))["exit_code"], 0)
+
+    def test_decimal_mean_and_median_absolute_equalities(self):
+        for metric in ("mean", "median"):
+            with self.subTest(metric=metric):
+                result = compare(capture([0.1, 0.2]), capture([0.1, 0.2]),
+                                 policy(metric=metric, max_ms=0.15))
+                self.assertEqual(result["exit_code"], 0)
+
+    def test_growth_beyond_numeric_guard_still_fails(self):
+        result = compare(capture([0.3]), capture([0.33000000001]),
+                         policy(max_regression_pct=10))
+        self.assertEqual(result["exit_code"], 1)
+
     def test_relative_requires_both_thresholds(self):
         old, new = capture([100]), capture([111])
         self.assertEqual(compare(old, new, policy(max_regression_pct=10, min_delta_ms=12))["exit_code"], 0)

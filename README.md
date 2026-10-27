@@ -87,7 +87,8 @@ A rule fails when either condition holds:
 - Percentage growth exceeds max_regression_pct **and** the absolute increase
   exceeds min_delta_ms.
 
-Every comparison uses strict greater-than boundaries and unrounded values.
+Comparisons use unrounded values and greater-than boundaries with a four-ULP
+(floating-point representable step) equality guard to absorb arithmetic noise.
 A rule requires at least one budget. The delta floor defaults to zero and requires
 a percentage budget. Duplicate selector/statistic combinations and unknown fields
 are rejected to expose policy mistakes.

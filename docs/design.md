@@ -43,7 +43,9 @@ Keeping these responsibilities separate makes report changes independent of gate
 Supported slices are sorted by start timestamp and original source index.
 B/E pairing uses per-lane stacks; supplied end labels must match. Begin source
 indexes survive pairing so equal-start warmup order follows the original input.
-Integer time values preserve subtraction precision.
+Integer time values preserve subtraction precision. Threshold checks compare the
+candidate statistic directly with its effective bound and use a four-ULP equality
+guard. This prevents decimal representation noise from flagging an exact boundary.
 
 Comma-delimited categories are canonicalized as sets. This makes "render,ui"
 and "ui,render" equivalent. Names remain exact and case-sensitive.

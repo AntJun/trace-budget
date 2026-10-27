@@ -222,6 +222,12 @@ def summarize(values: list[float]) -> dict:
     }
 
 
+def exceeds(value: float, limit: float) -> bool:
+    """Apply a four-ULP guard for arithmetic noise at an equality boundary."""
+    tolerance = 4 * max(math.ulp(value), math.ulp(limit))
+    return value > limit and value - limit > tolerance
+
+
 def compare(baseline: Capture, candidate: Capture, policy: Policy, warmup: int = 0) -> dict:
     if type(warmup) is not int or warmup < 0:
         raise InputError("warmup must be a nonnegative integer")
@@ -257,14 +263,14 @@ def compare(baseline: Capture, candidate: Capture, policy: Policy, warmup: int =
                 pct = None
             row["delta_ms"] = delta
             row["delta_pct"] = pct
-            if rule.max_ms is not None and after > rule.max_ms:
+            if rule.max_ms is not None and exceeds(after, rule.max_ms):
                 row["reasons"].append("absolute budget exceeded")
             if rule.max_regression_pct is not None:
                 # A zero baseline cannot define a percentage. Any positive
                 # candidate above the delta floor exceeds the relative gate.
-                relative_fail = (delta > before * rule.max_regression_pct / 100
-                                 if before > 0 else after > 0)
-                if relative_fail and delta > rule.min_delta_ms:
+                relative_fail = exceeds(after, before * (1 + rule.max_regression_pct / 100))
+                delta_fail = exceeds(after, before + rule.min_delta_ms)
+                if relative_fail and delta_fail:
                     row["reasons"].append("relative budget and delta floor exceeded")
             if row["reasons"]:
                 row["status"] = "regression"

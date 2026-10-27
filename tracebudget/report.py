@@ -80,7 +80,7 @@ Each row compares the same named span across two profiler captures.</p></header>
         + escape(diagnostics) + f"""</p><p>Warmup: {report["warmup_per_group"]} earliest spans removed
 per category/name group in each capture, pooled across threads. Minimum required:
 {report["min_samples"]} retained samples in both captures. Percentiles use linear
-interpolation at rank <code>(n - 1) * q</code>. Decisions use unrounded values.</p>
+interpolation at rank <code>(n - 1) * q</code>. Decisions use unrounded values with a four-ULP floating-point equality guard.</p>
 <p>Durations include nested work and waiting time. Percentages are undefined for a
 zero baseline or a ratio outside the finite numeric range. This report supplies
 descriptive comparisons; repeated controlled captures are needed to assess noise.
